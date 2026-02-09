@@ -1,8 +1,13 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { JsonRpcProvider, ethers } from 'ethers';
 import { ETHERS_PROVIDER } from '../infraestructure/ethers/ethers.module';
+import { SqsService } from '../infraestructure/sqs/sqs.service';
 import { USDC_CONTRACT_ADDRESS, USDC_DECIMALS } from './constants';
 import { DepositResult } from './types/deposit-result.type';
+import { DepositResponseDto } from './dtos';
+import { ClientWallet, ClientWalletDeposit } from './entities';
 
 @Injectable()
 export class DepositService {
@@ -11,6 +16,11 @@ export class DepositService {
   constructor(
     @Inject(ETHERS_PROVIDER)
     private readonly provider: JsonRpcProvider,
+    @InjectRepository(ClientWalletDeposit)
+    private readonly clientWalletDepositRepository: Repository<ClientWalletDeposit>,
+    @InjectRepository(ClientWallet)
+    private readonly clientWalletRepository: Repository<ClientWallet>,
+    private readonly sqsService: SqsService,
   ) {}
 
   async getDepositByTransactionHash(
@@ -71,6 +81,76 @@ export class DepositService {
     } catch (error) {
       this.logger.debug(`getDepositByTransactionHash error: ${error.message}`);
       return null;
+    }
+  }
+
+  async saveDeposit(deposit: ClientWalletDeposit): Promise<string | null> {
+    try {
+      const saved = await this.clientWalletDepositRepository.save(deposit);
+      return saved.id;
+    } catch (error) {
+      this.logger.debug(`saveDeposit error: ${error.message}`);
+      return null;
+    }
+  }
+
+  async sendMessageToSqs(messageBody: object): Promise<string | null> {
+    try {
+      const messageId = await this.sqsService.sendMessage(messageBody, 'deposits');
+      return messageId;
+    } catch (error) {
+      this.logger.debug(`sendMessageToSqs error: ${error.message}`);
+      return null;
+    }
+  }
+
+  async processDeposit(
+    walletAddress: string,
+    transactionHash: string
+  ): Promise<DepositResponseDto> {
+    try {
+      // 1. Validate transaction on blockchain
+      const txData = await this.getDepositByTransactionHash(walletAddress, transactionHash);
+      if (!txData) {
+        throw new BadRequestException('Invalid transaction or not found');
+      }
+
+      const clientWallet = await this.clientWalletRepository.findOne({ where: { walletAddress: walletAddress } });
+      
+      if (!clientWallet) {
+        throw new BadRequestException('Client wallet not found');
+      }
+
+      // 2. Save deposit to database
+      const deposit = {
+        clientWalletId: clientWallet.id,
+        mount: txData.amount.toString(),
+        walletAddressOrigin: txData.from,
+        crypto: 'USDC',
+        depositStatus: txData.status,
+        transactionHash: txData.transactionHash,
+      } as ClientWalletDeposit;
+
+      const depositId = await this.saveDeposit(deposit);
+      if (!depositId) {
+        throw new BadRequestException('Failed to save deposit');
+      }
+
+      // 3. Send message to SQS queue
+      await this.sendMessageToSqs({ depositId });
+
+      return {
+        status: 201,
+        message: 'Deposit processed successfully',
+        data: { depositId },
+      };
+    } catch (error) {
+      this.logger.debug(`processDeposit error: ${error.message}`);
+      return {
+        status: 400,
+        message: 'Failed to process deposit',
+        error: error.message,
+      };
     }
   }
 }

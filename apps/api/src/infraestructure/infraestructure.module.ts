@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeormModule } from './typeorm/typeorm.module';
 import { EthersModule } from './ethers/ethers.module';
+import { SqsModule } from './sqs/sqs.module';
 
 @Module({
   imports: [
@@ -11,6 +12,8 @@ import { EthersModule } from './ethers/ethers.module';
     }),
     TypeormModule,
     EthersModule,
+    SqsModule,
   ],
+  exports: [SqsModule],
 })
 export class InfraestructureModule {}
