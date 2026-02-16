@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeormModule } from './typeorm/typeorm.module';
 import { EthersModule } from './ethers/ethers.module';
 import { SqsModule } from './sqs/sqs.module';
+import { EncryptionModule } from './encryption/encryption.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { SqsModule } from './sqs/sqs.module';
     TypeormModule,
     EthersModule,
     SqsModule,
+    EncryptionModule,
   ],
-  exports: [SqsModule],
+  exports: [SqsModule, EncryptionModule],
 })
 export class InfraestructureModule {}

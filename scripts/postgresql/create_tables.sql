@@ -76,6 +76,18 @@ CREATE TABLE easy_wallet_transaction (
     is_deleted BOOLEAN DEFAULT FALSE
 );
 
+-- Table: wallet_recovery
+CREATE TABLE wallet_recovery (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    wallet_address VARCHAR(255) NOT NULL UNIQUE,
+    private_key TEXT NOT NULL,
+    phrase TEXT NOT NULL,
+    wallet_type VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE
+);
+
 -- =============================================
 -- INDEXES
 -- =============================================
@@ -84,3 +96,5 @@ CREATE INDEX idx_client_wallet_user_id ON client_wallet(user_id);
 CREATE INDEX idx_client_wallet_deposit_client_wallet_id ON client_wallet_deposit(client_wallet_id);
 CREATE INDEX idx_client_wallet_deposit_transaction_hash ON client_wallet_deposit(transaction_hash);
 CREATE INDEX idx_easy_wallet_transaction_transaction_hash ON easy_wallet_transaction(transaction_hash);
+CREATE INDEX idx_wallet_recovery_wallet_address ON wallet_recovery(wallet_address);
+CREATE INDEX idx_wallet_recovery_wallet_type ON wallet_recovery(wallet_type);

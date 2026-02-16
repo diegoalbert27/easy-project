@@ -21,6 +21,6 @@ export class EasyWalletTransaction extends BaseEntity {
   @Column({ name: 'sweeping_commission', type: 'decimal', precision: 28, scale: 18 })
   sweepingCommission: string;
 
-  @Column({ name: 'transaction_hash', unique: true })
-  transactionHash: string;
+  @Column({ name: 'transaction_hash', unique: true, nullable: true })
+  transactionHash?: string;
 }

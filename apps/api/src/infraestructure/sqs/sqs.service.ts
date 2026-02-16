@@ -40,12 +40,12 @@ export class SqsService {
     }
   }
 
-  async receiveMessages(maxMessages = 10): Promise<Message[]> {
+  async receiveMessages(maxMessages = 10, waitTimeSeconds = 5): Promise<Message[]> {
     try {
       const command = new ReceiveMessageCommand({
         QueueUrl: this.queueUrl,
         MaxNumberOfMessages: maxMessages,
-        WaitTimeSeconds: 5,
+        WaitTimeSeconds: waitTimeSeconds,
       });
 
       const response = await this.sqsClient.send(command);
@@ -54,6 +54,10 @@ export class SqsService {
       this.logger.debug(`receiveMessages error: ${error.message}`);
       return [];
     }
+  }
+
+  async receiveMessagesLongPolling(maxMessages = 10): Promise<Message[]> {
+    return this.receiveMessages(maxMessages, 20);
   }
 
   async deleteMessage(receiptHandle: string): Promise<boolean> {

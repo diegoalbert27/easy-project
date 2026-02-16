@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TransactionService } from './transaction.service';
+import { TransactionConsumerService } from './consumers';
+import { SqsModule } from '../infraestructure/sqs';
 import {
   EasyWalletRecipient,
   EasyWalletSweepingCommission,
   EasyWalletTransaction,
+  WalletRecovery,
 } from './entities';
 
 @Module({
@@ -13,8 +16,11 @@ import {
       EasyWalletRecipient,
       EasyWalletSweepingCommission,
       EasyWalletTransaction,
+      WalletRecovery,
     ]),
+    SqsModule,
   ],
-  providers: [TransactionService],
+  providers: [TransactionService, TransactionConsumerService],
+  exports: [TransactionService],
 })
 export class TransactionModule {}

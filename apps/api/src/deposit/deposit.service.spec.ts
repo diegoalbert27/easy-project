@@ -38,8 +38,8 @@ describe('DepositService', () => {
   });
 
   xit('Transaction hash must exist', async () => {
-    const addressWallet = '0x7186a5f4b0aD40708429c146231a73e085eBe594' 
-    const transactionHash = '0x69cde4f59c3cbd1ba1103c962f0176f0747cf1721a3056b8c17d3b430060088f'
+    const addressWallet = '0xcF4dC01381fF7605020528105baB9C4BCeb51706' 
+    const transactionHash = '0x85a20a55408549ed4e77d800968db62bb0489eceffd035d88eb047292b71c8c4'
 
     const deposit = await service.getDepositByTransactionHash(addressWallet, transactionHash);
 
@@ -58,8 +58,8 @@ describe('DepositService', () => {
   });
 
   xit('Transaction hash must not exist', async () => {
-    const addressWallet = '0x7186a5f4b0aD40708429c146231a73e085eBe594'
-    const transactionHash = '0x69cde4f59c3cbd1ba1103c962f0176f0747cf1721a3056b8c17d3b430060088a'
+    const addressWallet = '0xcF4dC01381fF7605020528105baB9C4BCeb51706'
+    const transactionHash = '0x85a20a55408549ed4e77d800968db62bb0489eceffd035d88eb047292b71c8c4'
 
     const deposit = await service.getDepositByTransactionHash(addressWallet, transactionHash);
 
@@ -85,7 +85,7 @@ describe('DepositService', () => {
   xit('Send message to SQS must be successfully', async () => {
     try {
       const messageBody = {
-        clientWalletDepositId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+        depositId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
       }
   
       await service.sendMessageToSqs(messageBody);
@@ -97,8 +97,8 @@ describe('DepositService', () => {
   })
 
   it('Process deposit with valid transaction', async () => {
-    const walletAddress = '0x7186a5f4b0aD40708429c146231a73e085eBe594';
-    const transactionHash = '0x69cde4f59c3cbd1ba1103c962f0176f0747cf1721a3056b8c17d3b430060088f';
+    const walletAddress = '0xcF4dC01381fF7605020528105baB9C4BCeb51706';
+    const transactionHash = '0x85a20a55408549ed4e77d800968db62bb0489eceffd035d88eb047292b71c8c4';
 
     const result = await service.processDeposit(walletAddress, transactionHash);
 

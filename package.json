@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "start": "node ./apps/api/dist/main.js"
+    "start": "node ./apps/api/dist/main.js",
+    "generate-wallet": "npx tsx scripts/generate-wallet.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +17,9 @@
   ],
   "devDependencies": {
     "turbo": "^2.7.4"
+  },
+  "dependencies": {
+    "@biconomy/account": "^4.5.7",
+    "ethers": "^5.8.0"
   }
 }

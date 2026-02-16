@@ -23,6 +23,30 @@ export class DepositService {
     private readonly sqsService: SqsService,
   ) {}
 
+  async getClientWalletDepositByDepositId(depositId: string): Promise<ClientWalletDeposit & { clientWallet: ClientWallet } | null> {
+    try {
+      const deposit = await this.clientWalletDepositRepository.findOne({ where: { id: depositId } });
+      
+      if (!deposit) {
+        throw new BadRequestException('Deposit not found');
+      }
+
+      const clientWallet = await this.clientWalletRepository.findOne({ where: { id: deposit.clientWalletId } });
+    
+      if (!clientWallet) {
+      throw new BadRequestException('Client wallet not found');
+      }
+
+      return {
+        ...deposit,
+        clientWallet,
+      };
+    } catch (error) {
+      this.logger.debug(`getClientWalletDepositById error: ${error.message}`);
+      throw error;
+    }
+  }
+
   async getDepositByTransactionHash(
     addressWallet: string,
     transactionHash: string,
@@ -94,7 +118,7 @@ export class DepositService {
     }
   }
 
-  async sendMessageToSqs(messageBody: object): Promise<string | null> {
+  async sendMessageToSqs(messageBody: { depositId: string }): Promise<string | null> {
     try {
       const messageId = await this.sqsService.sendMessage(messageBody, 'deposits');
       return messageId;
